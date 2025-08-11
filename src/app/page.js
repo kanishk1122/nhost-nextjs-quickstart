@@ -7,6 +7,7 @@ import {
 } from "@nhost/react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import ClientProvider from "../components/ClientProvider";
+import SignInPage from "../pages/signin";
 
 const CHATS_QUERY = gql`
   query MyChats {
@@ -33,13 +34,8 @@ export default function Home() {
   const [chatTitle, setChatTitle] = useState("");
 
   if (!isAuthenticated) {
-    // Show sign-in/sign-up form (Bolt or custom)
-    return (
-      <div>
-        <h2></h2>
-        {/* Implement Bolt/Nhost Auth form here */}
-      </div>
-    );
+    // Use the sign-in component
+    return <SignInPage />;
   }
 
   const handleCreateChat = async () => {
@@ -71,4 +67,5 @@ export default function Home() {
     </ClientProvider>
   );
 }
-}
+
+

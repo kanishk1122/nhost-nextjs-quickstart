@@ -1,22 +1,32 @@
 import { useState, useEffect } from "react";
-import { useSignIn } from "@nhost/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+import { nhost } from "../lib/nhost";
+import { useAuthenticationStatus } from "@nhost/react";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, isLoading, isSuccess, isError, error } = useSignIn();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { isAuthenticated } = useAuthenticationStatus();
 
   useEffect(() => {
-    if (isSuccess) {
+    if (isAuthenticated) {
       router.push("/chat");
     }
-  }, [isSuccess, router]);
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await signIn({ email, password });
+    setLoading(true);
+    setError("");
+    try {
+      await nhost.auth.signIn({ email, password });
+    } catch (err) {
+      setError(err.message || "Sign in failed");
+    }
+    setLoading(false);
   };
 
   return (
@@ -39,11 +49,10 @@ export default function SignInPage() {
           onChange={(e) => setPassword(e.target.value)}
           style={{ width: "100%", marginBottom: 8 }}
         />
-        <button type="submit" disabled={isLoading} style={{ width: "100%" }}>
-          {isLoading ? "Signing in..." : "Sign In"}
+        <button type="submit" disabled={loading} style={{ width: "100%" }}>
+          {loading ? "Signing in..." : "Sign In"}
         </button>
-        {isError && <div style={{ color: "red" }}>{error?.message}</div>}
-        {isSuccess && <div style={{ color: "green" }}>Signed in!</div>}
+        {error && <div style={{ color: "red" }}>{error}</div>}
       </form>
     </div>
   );
