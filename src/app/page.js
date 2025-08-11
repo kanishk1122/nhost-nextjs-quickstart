@@ -1,13 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  useAuthenticated,
-  useSignIn,
-  useSignUp,
-} from "@nhost/react";
+import { useAuthenticated, useSignIn, useSignUp } from "@nhost/react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import ClientProvider from "../components/ClientProvider";
-import SignInPage from "../pages/signin";
+import SignInPage from "./signin/page";
 
 const CHATS_QUERY = gql`
   query MyChats {
@@ -67,5 +63,3 @@ export default function Home() {
     </ClientProvider>
   );
 }
-
-
