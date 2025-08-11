@@ -1,7 +1,7 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useLazyQuery } from "@apollo/client";
 import { nhost } from "../../lib/nhost";
 
 const CREATE_CHAT_MUTATION = gql(`
@@ -14,10 +14,32 @@ const CREATE_CHAT_MUTATION = gql(`
   }
 `);
 
-const SEND_MESSAGE_ACTION = gql(`
-  mutation SendMessageAction($chatId: uuid!, $content: String!) {
-    sendMessage(chat_id: $chatId, content: $content) {
-      reply
+const SEND_MESSAGE_MUTATION = gql(`
+  mutation SendMessage($chat_id: uuid!, $content: String!, $sender: String!) {
+    insert_messages(
+      objects: {
+        chat_id: $chat_id
+        content: $content
+        sender: $sender
+      }
+    ) {
+      returning {
+        id
+        content
+        sender
+        created_at
+      }
+    }
+  }
+`);
+
+const GET_MESSAGES_QUERY = gql(`
+  query GetMessages($chatId: uuid!) {
+    messages(where: { chat_id: { _eq: $chatId } }, order_by: { created_at: asc }) {
+      id
+      content
+      sender
+      created_at
     }
   }
 `);
@@ -29,8 +51,11 @@ export default function ChatPage() {
   const userId = nhost.auth.getUser()?.id;
   const chatId = searchParams.get("id");
   const [input, setInput] = useState("");
-  const [sendMessageAction, { loading }] = useMutation(SEND_MESSAGE_ACTION);
-  const [createChat, { error: createChatError }] = useMutation(CREATE_CHAT_MUTATION);
+  const [sendMessage, { loading }] = useMutation(SEND_MESSAGE_MUTATION);
+  const [createChat, { error: createChatError }] =
+    useMutation(CREATE_CHAT_MUTATION);
+  const [getMessages, { data: messagesData, refetch }] =
+    useLazyQuery(GET_MESSAGES_QUERY);
 
   useEffect(() => {
     if (!chatId && userId) {
@@ -47,7 +72,10 @@ export default function ChatPage() {
         }
       })();
     }
-  }, [chatId, userId, createChat, router]);
+    if (chatId) {
+      getMessages({ variables: { chatId } });
+    }
+  }, [chatId, userId, createChat, router, getMessages]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -61,14 +89,16 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     if (!input || !chatId) return;
-    const { data } = await sendMessageAction({
+    await sendMessage({
       variables: {
-        chatId,
+        chat_id: chatId,
         content: input,
+        sender: "user",
       },
     });
     setInput("");
-    // Optionally, display bot reply or refetch messages here
+    // Refetch messages after sending
+    if (refetch) refetch();
   };
 
   if (createChatError) {
@@ -97,7 +127,11 @@ export default function ChatPage() {
           marginBottom: 10,
         }}
       >
-        {/* ...existing code for displaying messages... */}
+        {messagesData?.messages?.map((msg) => (
+          <div key={msg.id}>
+            <b>{msg.sender === "user" ? "You" : "Bot"}:</b> {msg.content}
+          </div>
+        ))}
       </div>
       <input
         type="text"
