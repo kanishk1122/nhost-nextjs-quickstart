@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { nhost } from "../../lib/nhost";
-import { useAuthenticationStatus } from "@nhost/react";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -10,19 +9,7 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { isAuthenticated } = useAuthenticationStatus();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      const user = nhost.auth.getUser();
-      const userId = user?.id;
-      if (userId) {
-        router.push(`/chat?id=${userId}`);
-      } else {
-        router.push("/chat");
-      }
-    }
-  }, [isAuthenticated, router]);
+  const { isAuthenticated, isLoading: authLoading } = nhost.auth.getAuthenticationStatus();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +23,10 @@ export default function SignInPage() {
       if (signInError) {
         setError(signInError.message || "Sign in failed");
       } else if (session?.user?.id) {
+        // Redirect after successful sign-in
         router.push(`/chat?id=${session.user.id}`);
+      } else {
+        router.push("/chat");
       }
     } catch (err) {
       setError(err.message || "Sign in failed");
@@ -72,3 +62,4 @@ export default function SignInPage() {
     </div>
   );
 }
+
