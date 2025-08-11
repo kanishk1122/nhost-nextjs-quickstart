@@ -24,7 +24,7 @@ export default function SignInPage() {
         setError(signInError.message || "Sign in failed");
       } else if (session?.user?.id) {
         // Redirect after successful sign-in
-        router.push(`/chat?id=${session.user.id}`);
+        router.push(`/chat`);
       } else {
         router.push("/chat");
       }
