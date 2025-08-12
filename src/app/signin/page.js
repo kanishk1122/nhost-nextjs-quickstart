@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { nhost } from "../../lib/nhost";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,22 +13,40 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } =
     nhost.auth.getAuthenticationStatus();
+
+  // Check for registration success message in URL
+  useEffect(() => {
+    if (searchParams) {
+      const registered = searchParams.get("registered");
+      const registeredEmail = searchParams.get("email");
+
+      if (registered === "true" && registeredEmail) {
+        setSuccess(
+          `Account created successfully! Please sign in with ${registeredEmail}`
+        );
+        setEmail(registeredEmail); // Pre-populate email field
+      }
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
       const { session, error: signInError } = await nhost.auth.signIn({
         email,
@@ -83,6 +101,31 @@ export default function SignInPage() {
         </CardHeader>
 
         <CardContent style={{ padding: "0 2rem 2rem" }}>
+          {success && (
+            <Alert
+              className="mb-6"
+              style={{
+                marginBottom: "1.5rem",
+                padding: "0.75rem 1rem",
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "#ecfdf5",
+                borderColor: "#10b981",
+              }}
+            >
+              <CheckCircle
+                style={{
+                  width: "16px",
+                  height: "16px",
+                  marginRight: "0.5rem",
+                  flexShrink: 0,
+                  color: "#10b981",
+                }}
+              />
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} style={{ marginBottom: "1.5rem" }}>
             <div style={{ marginBottom: "1.75rem" }}>
               <Label
@@ -217,16 +260,6 @@ export default function SignInPage() {
               )}
             </Button>
           </form>
-
-          {/* <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-            <a
-              href="#"
-              className="text-primary hover:underline"
-              style={{ fontSize: "0.95rem", fontWeight: "500" }}
-            >
-              Forgot your password?
-            </a>
-          </div> */}
 
           <div
             style={{

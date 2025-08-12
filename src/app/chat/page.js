@@ -330,9 +330,9 @@ function Sidebar({ currentChatId, onSelectChat, onClose }) {
   return (
     <div className="bg-gray-50 flex flex-col h-full border-r border-gray-200">
       <div className="p-4 border-b flex justify-between items-center bg-white"
-      style={{ borderBottom: "1px solid #eee" }}
+      style={{ borderBottom: "1px solid #eee" , padding: ".4rem 2rem" }}
       >
-        <h2 className="font-semibold text-lg">Your Conversations</h2>
+        <h2 className="font-semibold text-lg" >Your Conversations</h2>
         <Button
           onClick={handleCreateNewChat}
           disabled={createLoading}
@@ -360,7 +360,8 @@ function Sidebar({ currentChatId, onSelectChat, onClose }) {
         ) : data?.chats?.length === 0 ? (
           <div className="text-center p-8 text-gray-500">
             <p className="mb-4">No conversations yet</p>
-            <Button onClick={handleCreateNewChat} disabled={createLoading}>
+            <Button onClick={handleCreateNewChat} disabled={createLoading}
+              style={{ padding: "0.5rem 1rem", margin: "0.5rem 0" }}>
               Start a new chat
             </Button>
           </div>
@@ -545,7 +546,9 @@ function ChatContent() {
 
         {/* Main content - new conversation UI */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-white border-b p-4 flex items-center">
+          <header className="bg-white border-b p-4 flex items-center"
+            style={{padding: "1rem 2rem"}}
+          >
             <Button
               variant="ghost"
               size="icon"
@@ -558,8 +561,11 @@ function ChatContent() {
           </header>
 
           <div className="flex-1 flex flex-col justify-center items-center p-8">
-            <div className="text-center max-w-md">
-              <h2 className="text-2xl font-semibold mb-4">Start a new chat</h2>
+            <div className="text-center max-w-md"
+            >
+              <h2 className="text-2xl font-semibold mb-4"
+              
+              >Start a new chat</h2>
               <p className="text-gray-600 mb-6">
                 Send a message below to begin your conversation
               </p>

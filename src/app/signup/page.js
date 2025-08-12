@@ -44,12 +44,9 @@ export default function SignUpPage() {
 
       if (signUpError) {
         setError(signUpError.message || "Sign up failed");
-      } else if (session?.user?.id) {
-        // Redirect after successful sign-up and auto sign-in
-        router.push(`/chat`);
       } else {
-        // In case email verification is required
-        router.push("/verification-email-sent");
+        // Always redirect to sign in page with success message
+        router.push(`/chat`);
       }
     } catch (err) {
       setError(err.message || "Sign up failed");
@@ -332,3 +329,4 @@ export default function SignUpPage() {
     </div>
   );
 }
+ 
