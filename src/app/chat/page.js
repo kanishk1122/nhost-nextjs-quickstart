@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { gql, useMutation, useLazyQuery } from "@apollo/client";
 import { nhost } from "../../lib/nhost";
 // import Sidebar from "./sidebar";
-import {  useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { PlusCircle } from "lucide-react";
 
 // Shadcn UI components
@@ -62,10 +62,10 @@ const GET_MESSAGES_QUERY = gql(`
 `);
 
 // Update the function to call n8n webhook with POST request
-async function callN8nWebhook(chatId, recentMessages , messagefromUser ) {
+async function callN8nWebhook(chatId, recentMessages, messagefromUser) {
   try {
     // Extract the user's last message (the one they just sent)
-    const userMessage =messagefromUser;
+    const userMessage = messagefromUser;
 
     // Format chat history as pairs of [user message, bot response]
     const formattedChatHistory = [];
@@ -196,12 +196,10 @@ export default function ChatPage() {
         </div>
       }
     >
-      <ChatContent  />
+      <ChatContent />
     </Suspense>
   );
 }
-
-
 
 // Query to get all user's chats with preview of messages
 const GET_USER_CHATS = gql`
@@ -221,7 +219,6 @@ const GET_USER_CHATS = gql`
     }
   }
 `;
-
 
 function Sidebar({ currentChatId, onSelectChat, onClose }) {
   const router = useRouter();
@@ -332,12 +329,15 @@ function Sidebar({ currentChatId, onSelectChat, onClose }) {
 
   return (
     <div className="bg-gray-50 flex flex-col h-full border-r border-gray-200">
-      <div className="p-4 border-b flex justify-between items-center bg-white">
+      <div className="p-4 border-b flex justify-between items-center bg-white"
+      style={{ borderBottom: "1px solid #eee" }}
+      >
         <h2 className="font-semibold text-lg">Your Conversations</h2>
         <Button
           onClick={handleCreateNewChat}
           disabled={createLoading}
           variant="outline"
+          style={{ padding: "0.5rem 1rem", margin: "0.5rem 0" }}
           size="sm"
           className="flex items-center gap-1"
         >
@@ -366,38 +366,39 @@ function Sidebar({ currentChatId, onSelectChat, onClose }) {
           </div>
         ) : (
           <div className="space-y-2 p-1">
-            {data?.chats && data.chats.map((chat) => (
-              <button
-                key={chat.id}
-                onClick={() => handleSelectChat(chat.id)}
-                className={`w-full text-left p-3 rounded-lg transition-all ${
-                  chat.id === currentChatId
-                    ? "bg-blue-50 border border-blue-200"
-                    : "bg-white border border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex justify-between items-baseline">
-                  <span className="text-xs text-gray-500">
-                    {new Date(chat.created_at).toLocaleDateString()}
-                  </span>
-                  {chat.id === currentChatId && (
-                    <span className="text-xs font-medium text-blue-600">
-                      Current
+            {data?.chats &&
+              data.chats.map((chat) => (
+                <button
+                  key={chat.id}
+                  onClick={() => handleSelectChat(chat.id)}
+                  className={`w-full text-left p-3 rounded-lg transition-all ${
+                    chat.id === currentChatId
+                      ? "bg-blue-50 border border-blue-200"
+                      : "bg-white border border-gray-200 hover:bg-gray-50"
+                  }`}
+                  style={{padding: "0.5rem 1rem" , margin: "0.5rem 0"}}
+                >
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-xs text-gray-500">
+                      {new Date(chat.created_at).toLocaleDateString()}
                     </span>
-                  )}
-                </div>
-                <p className="text-sm mt-1 line-clamp-2 text-gray-700">
-                  {getChatPreview(chat)}
-                </p>
-              </button>
-            ))}
+                    {chat.id === currentChatId && (
+                      <span className="text-xs font-medium text-blue-600">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm mt-1 line-clamp-2 text-gray-700">
+                    {getChatPreview(chat)}
+                  </p>
+                </button>
+              ))}
           </div>
         )}
       </div>
     </div>
   );
 }
-
 
 // Fix the btoa function which causes hydration errors (not available during SSR)
 function ChatContent() {
@@ -414,25 +415,13 @@ function ChatContent() {
     useLazyQuery(GET_MESSAGES_QUERY);
   const [showSidebar, setShowSidebar] = useState(false);
 
+  // Modified useEffect to not create a chat automatically
   useEffect(() => {
-    if (!chatId && userId) {
-      (async () => {
-        try {
-          const { data } = await createChat({ variables: { user_id: userId } });
-          const newChatId = data?.insert_chats_one?.id;
-          if (newChatId) {
-            router.replace(`/chat?id=${newChatId}`);
-          }
-        } catch (err) {
-          // Error will be handled below
-          console.error("Error creating chat:", err);
-        }
-      })();
-    }
+    // Only fetch messages if a chatId exists
     if (chatId) {
       getMessages({ variables: { chatId } });
     }
-  }, [chatId, userId, createChat, router, getMessages]);
+  }, [chatId, getMessages]);
 
   if (isLoading) {
     return (
@@ -464,55 +453,31 @@ function ChatContent() {
     );
   }
 
-  if (!chatId) {
-    return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          padding: "1rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Card>
-          <CardContent style={{ padding: "2rem" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <div
-                style={{
-                  animation: "spin 1s linear infinite",
-                  height: "1.5rem",
-                  width: "1.5rem",
-                  border: "4px solid",
-                  borderColor: "hsl(222.2 47.4% 11.2%)",
-                  borderTopColor: "transparent",
-                  borderRadius: "50%",
-                }}
-              ></div>
-              <p>Creating chat...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+  // Handle sending a message - create a chat if needed
   const handleSend = async () => {
-    if (!input || !chatId) return;
+    if (!input || (!chatId && !userId)) return;
 
     try {
-      // 1. Save user message to database
+      // Create a new chat if none exists
+      let activeChatId = chatId;
+
+      if (!activeChatId) {
+        // Only create a chat when user sends first message
+        const { data } = await createChat({ variables: { user_id: userId } });
+        activeChatId = data?.insert_chats_one?.id;
+
+        if (activeChatId) {
+          // Update URL with new chat ID
+          router.replace(`/chat?id=${activeChatId}`);
+        } else {
+          throw new Error("Failed to create new chat");
+        }
+      }
+
+      // Save user message
       await sendMessage({
         variables: {
-          chat_id: chatId,
+          chat_id: activeChatId,
           content: input,
           sender: "user",
         },
@@ -520,68 +485,114 @@ function ChatContent() {
 
       setInput("");
 
-      // 2. Refetch messages to include the new user message
+      // Refetch messages to include the new user message
       await refetch();
 
-      // 3. Get ALL messages for the chat for better context
+      // Get messages for the chat
       const allMessages = messagesData?.messages || [];
 
-      // 4. Call n8n webhook with all messages (the function will format appropriately)
-      const botResponse = await callN8nWebhook(chatId, allMessages , input);
+      // Call n8n webhook with all messages
+      const botResponse = await callN8nWebhook(
+        activeChatId,
+        allMessages,
+        input
+      );
 
-      // 5. Save bot response to database
+      // Save bot response
       await sendMessage({
         variables: {
-          chat_id: chatId,
+          chat_id: activeChatId,
           content: botResponse,
           sender: "bot",
         },
       });
 
-      // 6. Refetch messages to show the bot response
+      // Refetch messages to show the bot response
       refetch();
     } catch (error) {
       console.error("Error in send message flow:", error);
     }
   };
 
-  if (createChatError) {
+  // Show a "start a conversation" UI when no chat is selected
+  if (!chatId) {
     return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          padding: "1rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">
-              Error creating chat
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="bg-muted p-4 rounded-md text-sm overflow-auto">
-              {createChatError.message}
-            </pre>
-            <p className="mt-4">
-              Please check Hasura permissions for the <b>user</b> role on the{" "}
-              <b>chats</b> table.
-              <br />
-              The <code className="bg-muted p-1 rounded">
-                insert_chats_one
-              </code>{" "}
-              mutation must be enabled.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="h-screen flex overflow-hidden">
+        {/* Desktop sidebar */}
+        <div className="hidden md:block w-80 h-full">
+          <Sidebar currentChatId={chatId} />
+        </div>
+
+        {/* Mobile sidebar toggle */}
+        {showSidebar && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
+            <div className="w-80 h-full bg-white relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2"
+                onClick={() => setShowSidebar(false)}
+              >
+                <X size={20} />
+              </Button>
+              <Sidebar
+                currentChatId={chatId}
+                onClose={() => setShowSidebar(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Main content - new conversation UI */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <header className="bg-white border-b p-4 flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden mr-2"
+              onClick={() => setShowSidebar(true)}
+            >
+              <Menu size={20} />
+            </Button>
+            <h1 className="text-xl font-semibold">New Conversation</h1>
+          </header>
+
+          <div className="flex-1 flex flex-col justify-center items-center p-8">
+            <div className="text-center max-w-md">
+              <h2 className="text-2xl font-semibold mb-4">Start a new chat</h2>
+              <p className="text-gray-600 mb-6">
+                Send a message below to begin your conversation
+              </p>
+              <div className="bg-white rounded-lg p-6 shadow-md">
+                <form
+                  className="flex gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (input.trim() && !loading) handleSend();
+                  }}
+                >
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your message to start..."
+                    className="flex-1"
+                    style={{ padding: "12px 16px" }}
+                  />
+                  <Button
+                    type="submit"
+                    disabled={loading || !input.trim()}
+                    style={{ padding: "12px 16px" }}
+                  >
+                    {loading ? "Starting..." : "Start Chat"}
+                  </Button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
-  
 
   return (
     <div className="h-screen flex overflow-hidden">
@@ -631,7 +642,7 @@ function ChatContent() {
               No messages yet. Start the conversation!
             </div>
           ) : (
-            <div className="space-y-4" >
+            <div className="space-y-4">
               {messagesData?.messages?.map((msg) => (
                 <div
                   key={msg.id}
@@ -654,7 +665,7 @@ function ChatContent() {
                         ? "bg-blue-600 text-white rounded-tr-none"
                         : "bg-gray-100 rounded-tl-none"
                     }`}
-                    style={{ padding: "12px 16px" , margin: "8px 0" }}
+                    style={{ padding: "12px 16px", margin: "8px 0" }}
                   >
                     <div className="whitespace-pre-wrap break-words">
                       {msg.content}
@@ -681,7 +692,10 @@ function ChatContent() {
         </div>
 
         {/* Message input */}
-        <div className="border-t bg-gray-50 p-4" style={{ padding: "12px 16px" }}>
+        <div
+          className="border-t bg-gray-50 p-4"
+          style={{ padding: "12px 16px" }}
+        >
           <form
             className="flex gap-2"
             onSubmit={(e) => {
@@ -696,8 +710,10 @@ function ChatContent() {
               className="flex-1"
               style={{ padding: "12px 16px", marginRight: "8px" }}
             />
-            <Button type="submit" disabled={loading || !input.trim()}
-            style={{ padding: "12px 16px" }}
+            <Button
+              type="submit"
+              disabled={loading || !input.trim()}
+              style={{ padding: "12px 16px" }}
             >
               {loading ? "Sending..." : "Send"}
             </Button>
