@@ -103,30 +103,47 @@ async function callN8nWebhook(chatId, recentMessages) {
     console.log("Sending webhook request:", JSON.stringify(requestBody));
 
     // Call the n8n webhook with POST
-   const username = "kanishk";
-const password = "kanishk";
-const basicAuth = btoa(`${username}:${password}`);
+    const username = "kanishk";
+    const password = "kanishk";
+    const basicAuth = btoa(`${username}:${password}`);
 
-const response = await fetch(
-  `https://kanishk112221.app.n8n.cloud/webhook/6f208eb9-4e10-4935-a1d0-50a5dbbd5977`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      Authorization: `Basic ${basicAuth}`,
-    },
-    body: JSON.stringify(requestBody),
-  }
-);
-
+    const response = await fetch(
+      `https://kanishk112221.app.n8n.cloud/webhook/6f208eb9-4e10-4935-a1d0-50a5dbbd5977`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Basic ${basicAuth}`,
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`N8n webhook returned ${response.status}`);
     }
 
     const data = await response.json();
-    return data.botReply || data.response || "Sorry, I couldn't generate a response.";
+    console.log("N8n response:", data);
+
+    // Specifically extract the 'reply' field as shown in the example response
+    if (data && data.reply) {
+      return data.reply;
+    } else if (
+      data &&
+      data.fullResponse &&
+      data.fullResponse[0] &&
+      Array.isArray(data.fullResponse[0]) &&
+      data.fullResponse[0].length > 0 &&
+      data.fullResponse[0][data.fullResponse[0].length - 1] &&
+      data.fullResponse[0][data.fullResponse[0].length - 1][1]
+    ) {
+      // Extract from fullResponse as fallback
+      return data.fullResponse[0][data.fullResponse[0].length - 1][1];
+    }
+
+    return "Sorry, I couldn't generate a response.";
   } catch (error) {
     console.error("Error calling n8n webhook:", error);
     return "Sorry, there was an error generating a response.";
