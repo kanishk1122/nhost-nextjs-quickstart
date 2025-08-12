@@ -15,9 +15,26 @@ async function getGradioClient() {
 
 export async function POST(request) {
   try {
-    // Parse request body
-    const body = await request.json();
-    const { message, chatHistory = [], chatCounter = 1 } = body;
+    // Parse request body with better error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error("Error parsing JSON request:", parseError);
+
+      // Log the request details for debugging
+      const text = await request
+        .text()
+        .catch((e) => "Could not get request text");
+      console.error("Raw request body:", text);
+
+      return NextResponse.json(
+        { error: "Invalid JSON in request body", details: parseError.message },
+        { status: 400 }
+      );
+    }
+
+    const { message, chatHistory = [], chatCounter = 1 } = body || {};
 
     if (!message) {
       return NextResponse.json(
@@ -49,13 +66,29 @@ export async function POST(request) {
         : [["Hello!", null]],
     });
 
-    console.log("Received prediction result");
+    console.log("Received prediction result:", JSON.stringify(result.data));
 
-    // Extract response from result
-    const botReply =
-      result.data && result.data.length > 0
-        ? result.data[result.data.length - 1][1]
-        : "Sorry, I couldn't generate a response.";
+    // Extract response from result - getting the LAST response instead of the first
+    let botReply = "Sorry, I couldn't generate a response.";
+
+    // Based on your response structure, getting the LAST message-response pair
+    if (
+      result.data &&
+      Array.isArray(result.data) &&
+      result.data.length > 0 &&
+      Array.isArray(result.data[0]) &&
+      result.data[0].length > 0
+    ) {
+      // Get the last message-response pair from the array
+      const lastPair = result.data[0][result.data[0].length - 1];
+
+      // Extract the response (second element in the pair)
+      if (Array.isArray(lastPair) && lastPair.length > 1) {
+        botReply = lastPair[1];
+      }
+    }
+
+    console.log("Extracted bot reply (latest):", botReply);
 
     return NextResponse.json({
       reply: botReply,
