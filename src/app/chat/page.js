@@ -329,10 +329,11 @@ function Sidebar({ currentChatId, onSelectChat, onClose }) {
 
   return (
     <div className="bg-gray-50 flex flex-col h-full border-r border-gray-200">
-      <div className="p-4 border-b flex justify-between items-center bg-white"
-      style={{ borderBottom: "1px solid #eee" , padding: ".4rem 2rem" }}
+      <div
+        className="p-4 border-b flex justify-between items-center bg-white"
+        style={{ borderBottom: "1px solid #eee", padding: ".4rem 2rem" }}
       >
-        <h2 className="font-semibold text-lg" >Your Conversations</h2>
+        <h2 className="font-semibold text-lg">Your Conversations</h2>
         <Button
           onClick={handleCreateNewChat}
           disabled={createLoading}
@@ -360,8 +361,11 @@ function Sidebar({ currentChatId, onSelectChat, onClose }) {
         ) : data?.chats?.length === 0 ? (
           <div className="text-center p-8 text-gray-500">
             <p className="mb-4">No conversations yet</p>
-            <Button onClick={handleCreateNewChat} disabled={createLoading}
-              style={{ padding: "0.5rem 1rem", margin: "0.5rem 0" }}>
+            <Button
+              onClick={handleCreateNewChat}
+              disabled={createLoading}
+              style={{ padding: "0.5rem 1rem", margin: "0.5rem 0" }}
+            >
               Start a new chat
             </Button>
           </div>
@@ -377,7 +381,7 @@ function Sidebar({ currentChatId, onSelectChat, onClose }) {
                       ? "bg-blue-50 border border-blue-200"
                       : "bg-white border border-gray-200 hover:bg-gray-50"
                   }`}
-                  style={{padding: "0.5rem 1rem" , margin: "0.5rem 0"}}
+                  style={{ padding: "0.5rem 1rem", margin: "0.5rem 0" }}
                 >
                   <div className="flex justify-between items-baseline">
                     <span className="text-xs text-gray-500">
@@ -415,6 +419,8 @@ function ChatContent() {
   const [getMessages, { data: messagesData, refetch }] =
     useLazyQuery(GET_MESSAGES_QUERY);
   const [showSidebar, setShowSidebar] = useState(false);
+  // Add state to track when AI is generating a response
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Modified useEffect to not create a chat automatically
   useEffect(() => {
@@ -489,6 +495,9 @@ function ChatContent() {
       // Refetch messages to include the new user message
       await refetch();
 
+      // Set AI loading state to show typing indicator
+      setAiLoading(true);
+
       // Get messages for the chat
       const allMessages = messagesData?.messages || [];
 
@@ -508,10 +517,13 @@ function ChatContent() {
         },
       });
 
-      // Refetch messages to show the bot response
-      refetch();
+      // Refetch messages to show the bot response and remove loading state
+      await refetch();
+      setAiLoading(false);
     } catch (error) {
       console.error("Error in send message flow:", error);
+      // Make sure to clear loading state even in case of error
+      setAiLoading(false);
     }
   };
 
@@ -546,8 +558,9 @@ function ChatContent() {
 
         {/* Main content - new conversation UI */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-white border-b p-4 flex items-center"
-            style={{padding: "1rem 2rem"}}
+          <header
+            className="bg-white border-b p-4 flex items-center"
+            style={{ padding: "1rem 2rem" }}
           >
             <Button
               variant="ghost"
@@ -561,11 +574,8 @@ function ChatContent() {
           </header>
 
           <div className="flex-1 flex flex-col justify-center items-center p-8">
-            <div className="text-center max-w-md"
-            >
-              <h2 className="text-2xl font-semibold mb-4"
-              
-              >Start a new chat</h2>
+            <div className="text-center max-w-md">
+              <h2 className="text-2xl font-semibold mb-4">Start a new chat</h2>
               <p className="text-gray-600 mb-6">
                 Send a message below to begin your conversation
               </p>
@@ -693,6 +703,73 @@ function ChatContent() {
                   )}
                 </div>
               ))}
+
+              {/* Add AI typing indicator when loading */}
+              {aiLoading && (
+                <div
+                  className="flex items-start gap-3 justify-start"
+                  style={{ margin: "8px 20px" }}
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="/bot-avatar.png" alt="Bot" />
+                    <AvatarFallback className="bg-blue-100 text-blue-800 text-xs">
+                      BOT
+                    </AvatarFallback>
+                  </Avatar>
+                  <div
+                    className="px-4 py-2 rounded-lg max-w-[75%] bg-gray-100 rounded-tl-none"
+                    style={{
+                      padding: "12px 16px",
+                      margin: "8px 0",
+                      minWidth: "80px",
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <span
+                        className="typing-dot"
+                        style={{
+                          animationDelay: "0s",
+                          backgroundColor: "#666",
+                          borderRadius: "50%",
+                          display: "inline-block",
+                          height: "8px",
+                          marginRight: "4px",
+                          width: "8px",
+                          animation:
+                            "typingAnimation 1.4s infinite ease-in-out",
+                        }}
+                      ></span>
+                      <span
+                        className="typing-dot"
+                        style={{
+                          animationDelay: "0.2s",
+                          backgroundColor: "#666",
+                          borderRadius: "50%",
+                          display: "inline-block",
+                          height: "8px",
+                          marginRight: "4px",
+                          width: "8px",
+                          animation:
+                            "typingAnimation 1.4s infinite ease-in-out",
+                        }}
+                      ></span>
+                      <span
+                        className="typing-dot"
+                        style={{
+                          animationDelay: "0.4s",
+                          backgroundColor: "#666",
+                          borderRadius: "50%",
+                          display: "inline-block",
+                          height: "8px",
+                          width: "8px",
+                          animation:
+                            "typingAnimation 1.4s infinite ease-in-out",
+                        }}
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -738,6 +815,16 @@ function ChatContent() {
         }
         .animate-slide-in {
           animation: slide-in 0.3s ease-out;
+        }
+        @keyframes typingAnimation {
+          0%,
+          60%,
+          100% {
+            transform: translateY(0);
+          }
+          30% {
+            transform: translateY(-6px);
+          }
         }
       `}</style>
     </div>
