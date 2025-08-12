@@ -44,7 +44,7 @@ export async function POST(request) {
     }
 
     // Format chat history for Gradio
-    const formattedChatHistory = chatHistory.map((msg) => {
+    const formattedChatHistory = chatHistory.slice(-1 , -3).map((msg) => {
       if (Array.isArray(msg)) {
         return msg;
       }
@@ -63,7 +63,7 @@ export async function POST(request) {
       chat_counter: chatCounter,
       chatbot: formattedChatHistory.length
         ? formattedChatHistory + "You are a friendly chatbot that answers user questions politely."
-        : [["Hello!", null]],
+        : [["You are a friendly chatbot that answers user questions politely.", null]],
     });
 
     console.log("Received prediction result:", JSON.stringify(result.data));
