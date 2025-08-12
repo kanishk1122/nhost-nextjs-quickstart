@@ -277,18 +277,18 @@ function Sidebar({ currentChatId, onSelectChat, onClose }) {
   }, [userId, refetch, isMounted]);
 
   // Don't render anything during SSR or initial render
-//   if (!isMounted) {
-//     return (
-//       <div className="bg-gray-50 h-full flex flex-col p-4">
-//         <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-//         <div className="space-y-3">
-//           <div className="h-16 bg-gray-200 rounded w-full"></div>
-//           <div className="h-16 bg-gray-200 rounded w-full"></div>
-//           <div className="h-16 bg-gray-200 rounded w-full"></div>
-//         </div>
-//       </div>
-//     );
-//   }
+  if (!isMounted) {
+    return (
+      <div className="bg-gray-50 h-full flex flex-col p-4">
+        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+        <div className="space-y-3">
+          <div className="h-16 bg-gray-200 rounded w-full"></div>
+          <div className="h-16 bg-gray-200 rounded w-full"></div>
+          <div className="h-16 bg-gray-200 rounded w-full"></div>
+        </div>
+      </div>
+    );
+  }
 
   const handleCreateNewChat = async () => {
     if (!userId) return;
