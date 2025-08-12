@@ -217,7 +217,7 @@ export default function SignInPage() {
             </Button>
           </form>
 
-          <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+          {/* <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
             <a
               href="#"
               className="text-primary hover:underline"
@@ -225,7 +225,7 @@ export default function SignInPage() {
             >
               Forgot your password?
             </a>
-          </div>
+          </div> */}
 
           <div
             style={{
