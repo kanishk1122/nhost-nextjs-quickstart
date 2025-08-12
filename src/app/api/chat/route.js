@@ -62,7 +62,7 @@ export async function POST(request) {
       temperature: 1,
       chat_counter: chatCounter,
       chatbot: formattedChatHistory.length
-        ? formattedChatHistory
+        ? formattedChatHistory + "You are a friendly chatbot that answers user questions politely."
         : [["Hello!", null]],
     });
 
