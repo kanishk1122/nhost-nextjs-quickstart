@@ -13,37 +13,46 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-export default function SignInPage() {
+export default function SignUpPage() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } =
-    nhost.auth.getAuthenticationStatus();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const { session, error: signInError } = await nhost.auth.signIn({
+      const { session, error: signUpError } = await nhost.auth.signUp({
         email,
         password,
+        options: {
+          displayName: `${firstName} ${lastName}`.trim(),
+          metadata: {
+            firstName,
+            lastName,
+          },
+        },
       });
-      if (signInError) {
-        setError(signInError.message || "Sign in failed");
+
+      if (signUpError) {
+        setError(signUpError.message || "Sign up failed");
       } else if (session?.user?.id) {
-        // Redirect after successful sign-in
+        // Redirect after successful sign-up and auto sign-in
         router.push(`/chat`);
       } else {
-        router.push("/chat");
+        // In case email verification is required
+        router.push("/verification-email-sent");
       }
     } catch (err) {
-      setError(err.message || "Sign in failed");
+      setError(err.message || "Sign up failed");
     }
     setLoading(false);
   };
@@ -75,15 +84,98 @@ export default function SignInPage() {
               marginBottom: "0.75rem",
             }}
           >
-            Sign In
+            Create Account
           </CardTitle>
           <CardDescription style={{ textAlign: "center", fontSize: "0.95rem" }}>
-            Enter your email and password to access your account
+            Sign up to get started with your new account
           </CardDescription>
         </CardHeader>
 
         <CardContent style={{ padding: "0 2rem 2rem" }}>
           <form onSubmit={handleSubmit} style={{ marginBottom: "1.5rem" }}>
+            <div
+              style={{ marginBottom: "1.75rem", display: "flex", gap: "1rem" }}
+            >
+              <div style={{ width: "50%" }}>
+                <Label
+                  htmlFor="firstName"
+                  style={{
+                    display: "block",
+                    marginBottom: "0.5rem",
+                    fontWeight: "500",
+                  }}
+                >
+                  First Name
+                </Label>
+                <div style={{ position: "relative" }}>
+                  <User
+                    style={{
+                      position: "absolute",
+                      left: "12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "#6b7280",
+                      width: "18px",
+                      height: "18px",
+                    }}
+                  />
+                  <Input
+                    id="firstName"
+                    type="text"
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    style={{
+                      paddingLeft: "2.5rem",
+                      paddingRight: "1rem",
+                      height: "48px",
+                      fontSize: "1rem",
+                    }}
+                  />
+                </div>
+              </div>
+              <div style={{ width: "50%" }}>
+                <Label
+                  htmlFor="lastName"
+                  style={{
+                    display: "block",
+                    marginBottom: "0.5rem",
+                    fontWeight: "500",
+                  }}
+                >
+                  Last Name
+                </Label>
+                <div style={{ position: "relative" }}>
+                  <User
+                    style={{
+                      position: "absolute",
+                      left: "12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "#6b7280",
+                      width: "18px",
+                      height: "18px",
+                      opacity: "0.5",
+                    }}
+                  />
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    style={{
+                      paddingLeft: "2.5rem",
+                      paddingRight: "1rem",
+                      height: "48px",
+                      fontSize: "1rem",
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div style={{ marginBottom: "1.75rem" }}>
               <Label
                 htmlFor="email"
@@ -150,7 +242,7 @@ export default function SignInPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -210,23 +302,13 @@ export default function SignInPage() {
                     }}
                     className="animate-spin"
                   />
-                  Signing in...
+                  Creating account...
                 </>
               ) : (
-                "Sign In"
+                "Sign Up"
               )}
             </Button>
           </form>
-
-          {/* <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-            <a
-              href="#"
-              className="text-primary hover:underline"
-              style={{ fontSize: "0.95rem", fontWeight: "500" }}
-            >
-              Forgot your password?
-            </a>
-          </div> */}
 
           <div
             style={{
@@ -236,13 +318,13 @@ export default function SignInPage() {
               color: "#6b7280",
             }}
           >
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <Link
-              href="/signup"
+              href="/signin"
               className="text-primary hover:underline"
               style={{ fontWeight: "600" }}
             >
-              Sign up
+              Sign in
             </Link>
           </div>
         </CardContent>
