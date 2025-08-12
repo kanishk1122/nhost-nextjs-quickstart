@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { gql, useMutation, useLazyQuery } from "@apollo/client";
 import { nhost } from "../../lib/nhost";
 
@@ -57,7 +57,8 @@ const GET_MESSAGES_QUERY = gql(`
   }
 `);
 
-export default function ChatPage() {
+// Create a ChatContent component that uses useSearchParams
+function ChatContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated, isLoading } = nhost.auth.getAuthenticationStatus();
@@ -439,5 +440,46 @@ export default function ChatPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function ChatPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          style={{
+            height: "100vh",
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Card style={{ padding: "2rem", textAlign: "center" }}>
+            <CardContent>
+              <div style={{ marginBottom: "1rem" }}>
+                <div
+                  style={{
+                    animation: "spin 1s linear infinite",
+                    height: "2rem",
+                    width: "2rem",
+                    border: "4px solid",
+                    borderColor: "hsl(222.2 47.4% 11.2%)",
+                    borderTopColor: "transparent",
+                    borderRadius: "50%",
+                    margin: "0 auto 1rem auto",
+                  }}
+                ></div>
+                <p>Loading chat...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <ChatContent />
+    </Suspense>
   );
 }
