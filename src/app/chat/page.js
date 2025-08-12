@@ -57,6 +57,82 @@ const GET_MESSAGES_QUERY = gql(`
   }
 `);
 
+// Update the function to call n8n webhook with POST request
+async function callN8nWebhook(chatId, recentMessages) {
+  try {
+    // Extract the user's last message (the one they just sent)
+    const userMessage =
+      recentMessages.length > 0
+        ? recentMessages[recentMessages.length - 1].content
+        : "";
+
+    // Format chat history as pairs of [user message, bot response]
+    const formattedChatHistory = [];
+
+    // Start from earlier messages and build conversation history
+    for (let i = 0; i < recentMessages.length - 1; i++) {
+      if (
+        recentMessages[i].sender === "user" &&
+        i + 1 < recentMessages.length &&
+        recentMessages[i + 1].sender === "bot"
+      ) {
+        formattedChatHistory.push([
+          recentMessages[i].content,
+          recentMessages[i + 1].content,
+        ]);
+      }
+    }
+
+    // Add the latest user message with null response (since we're waiting for response)
+    if (
+      recentMessages.length > 0 &&
+      recentMessages[recentMessages.length - 1].sender === "user"
+    ) {
+      formattedChatHistory.push([
+        recentMessages[recentMessages.length - 1].content,
+        null,
+      ]);
+    }
+
+    // Create request body as specified
+    const requestBody = {
+      message: userMessage,
+      formattedChatHistory: formattedChatHistory,
+    };
+
+    console.log("Sending webhook request:", JSON.stringify(requestBody));
+
+    // Call the n8n webhook with POST
+   const username = "kanishk";
+const password = "kanishk";
+const basicAuth = btoa(`${username}:${password}`);
+
+const response = await fetch(
+  `https://kanishk112221.app.n8n.cloud/webhook/6f208eb9-4e10-4935-a1d0-50a5dbbd5977`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Basic ${basicAuth}`,
+    },
+    body: JSON.stringify(requestBody),
+  }
+);
+
+
+    if (!response.ok) {
+      throw new Error(`N8n webhook returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.botReply || data.response || "Sorry, I couldn't generate a response.";
+  } catch (error) {
+    console.error("Error calling n8n webhook:", error);
+    return "Sorry, there was an error generating a response.";
+  }
+}
+
 // Create a ChatContent component that uses useSearchParams
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -202,16 +278,42 @@ function ChatContent() {
 
   const handleSend = async () => {
     if (!input || !chatId) return;
-    await sendMessage({
-      variables: {
-        chat_id: chatId,
-        content: input,
-        sender: "user",
-      },
-    });
-    setInput("");
-    // Refetch messages after sending
-    if (refetch) refetch();
+
+    try {
+      // 1. Save user message to database
+      await sendMessage({
+        variables: {
+          chat_id: chatId,
+          content: input,
+          sender: "user",
+        },
+      });
+
+      setInput("");
+
+      // 2. Refetch messages to include the new user message
+      await refetch();
+
+      // 3. Get ALL messages for the chat for better context
+      const allMessages = messagesData?.messages || [];
+
+      // 4. Call n8n webhook with all messages (the function will format appropriately)
+      const botResponse = await callN8nWebhook(chatId, allMessages);
+
+      // 5. Save bot response to database
+      await sendMessage({
+        variables: {
+          chat_id: chatId,
+          content: botResponse,
+          sender: "bot",
+        },
+      });
+
+      // 6. Refetch messages to show the bot response
+      refetch();
+    } catch (error) {
+      console.error("Error in send message flow:", error);
+    }
   };
 
   if (createChatError) {
