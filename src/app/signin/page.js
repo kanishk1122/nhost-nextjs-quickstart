@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { nhost } from "../../lib/nhost";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
-export default function SignInPage() {
+// Inner component that uses useSearchParams
+function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -281,5 +282,41 @@ export default function SignInPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "2rem",
+            backgroundColor: "#f9fafb",
+          }}
+        >
+          <Card
+            style={{
+              width: "100%",
+              maxWidth: "480px",
+              padding: "2rem",
+              textAlign: "center",
+            }}
+          >
+            <CardContent>
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p>Loading sign in page...</p>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <SignInForm />
+    </Suspense>
   );
 }
