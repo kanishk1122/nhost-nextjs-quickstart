@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nhost Chat Application
+
+A real-time chat application built with Next.js and Nhost, featuring AI-powered responses and authentication.
+
+## Features
+
+- 🔒 User authentication with Nhost (sign up, sign in)
+- 💬 Real-time chat functionality
+- 🤖 AI-powered chat responses via n8n webhook
+- 📱 Responsive design with mobile support
+- 💾 Persistent chat history
+- 🚀 Built with Next.js App Router
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React, Apollo Client, TailwindCSS, shadcn/ui
+- **Backend**: Nhost (Postgres, Hasura, Authentication)
+- **AI Integration**: n8n webhook
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 16+
+- npm or yarn
+- Nhost account and project
+
+
+### Installation
 
 ```bash
+# Install dependencies
+npm install
+# or
+yarn install
+
+# Run the development server
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Sign up for an account or sign in with existing credentials
+2. Create a new chat or continue an existing conversation
+3. Type a message and press Enter or click Send
+4. The AI will respond to your message
 
-## Learn More
+## Database Schema
 
-To learn more about Next.js, take a look at the following resources:
+The application uses the following tables:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `users` - Managed by Nhost Auth
+- `chats` - Stores chat sessions
+- `messages` - Stores individual messages
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+### Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new):
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push your code to a Git repository
+2. Import the repository to Vercel
+3. Add the environment variables
+4. Deploy!
+
+### Deploy with Nhost
+
+You can also deploy the frontend with Nhost:
+
+1. Push your code to GitHub
+2. Connect your Nhost project to your GitHub repository
+3. Configure the build settings
+4. Deploy!
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License.
